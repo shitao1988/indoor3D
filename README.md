@@ -3,54 +3,219 @@ indoor3D
 
 This is a javascript lib based on three.js to show an indoor map
 
-构造函数
-var map = new IndoorMap(params)
-constructor(params)
+**A GUI map eidtor software is under development. Currently you must draw a map with other software and convert it to the JSON format used in this project.**
 
-params参数说明
-参数名	参数类型	参数说明
-mapDiv	string	地图的容器div的id。如果未设置则会默认在html的body元素下创建一个新的div作为地图容器
-size	[number, number]	在未指定mapDiv的情况下，设置默认创建的地图容器的大小，格式为[width, height]。若为空则默认设置为全屏
-dim	string	地图显示的纬度。目前只支持三维，值固定为’3d’
+#Demo
+2D Map Demo Page: http://wolfwind521.github.io/2dmap
 
-方法
-方法名	参数类型	返回值	方法说明
-setTheme(theme)	Theme	无	设置地图样式
-theme	无	Theme	获得当前地图样式。格式见附件Theme
-getSize	无	[number, number]	获得当前地图大小，格式为[width，height]
-parse(json)	string		解析json，生成建筑并显示，格式见附件BuildingJson
-setDefaultView	无	无	显示默认视图
-setTopView			显示俯视视图
-changeViewAngle( hAngle, vAngle)	hAngle: number
-vAngle：number	无	旋转视图。hAngle表示水平旋转角，vAngle表示垂直旋转角。单位为度
-zoomIn	无	无	放大
-zoomOut	无	无	缩小
-showFloor(floorId)	floorid：string	无	显示指定图层。floorId表示待显示楼层id
-showAllFloors(scale)	scale: number	无	显示所有楼层的详细的户的信息。scale表示楼层间的间距的缩放比例，默认为1。允许的最小值为0.5，无最大值限制
-showFloorWalls	无	无	显示所有楼层，但只显示楼层的外墙，不显示户的信息
-setSelectable(selectable)	selectable:boolean	无	是否允许楼层和户响应鼠标选中事件
-getSelectedId	无	string	获得当前选中的楼层或户的id
-setSelectionListener(callback)	callback:Function	无	设置鼠标选中楼层或户后的响应函数。响应函数接收三个参数：
-Id：选中的楼层或户的id
-dataInfo：选中的楼层或户的属性信息
-event：原始鼠标事件
-selectById(floorId, cellId)	floorId：string
-cellId：string	无	选中指定的户。floorId和cellId分别表示楼层的id和户的id
+3D Map Demo Page: http://wolfwind521.github.io
 
-IndoorMapLoader
-构造函数
-var loader = new IndoorMapLoader(true, {sceneSize: indoorMap.getSize()});
-constructor(is3d, options)
-Is3d: 是否为3d地图。目前只支持3d，固定为true
+#Usage
+a simplest example: 
+```html
+<!DOCTYPE html>
+<html>
+<body>
+<script src="js/three.min.js"></script>
+<script src="js/Detector.js"></script>
+<script src="js/OrbitControls.js"></script>
+<script src="js/IndoorMap.js"></script>
+<script src="js/Projector.js"></script>
+<script src="js/IndoorMap2d.js"></script>
+<script src="js/IndoorMap3d.js"></script>
+<script>
+    var map = new IndoorMap();
+    map.load('data/testMapData.json').showFloor(1);
+</script>
+</body>
+</html>
+```
+a little more complex example：
+```html
+<!DOCTYPE html>
+<html>
+<body>
+<script src="js/three.min.js"></script>
+<script src="js/Detector.js"></script>
+<script src="js/OrbitControls.js"></script>
+<script src="js/Projector.js"></script>
+<script src="js/IndoorMap.js"></script>
+<script src="js/IndoorMap2d.js"></script>
+<script src="js/IndoorMap3d.js"></script>
+<link href="css/indoor3D.css" rel="stylesheet">
 
-options参数说明
-参数名	参数类型	参数说明
-sceneSize	{width:number, height:number]	指定地图容器的大小。若为空则默认为全屏
+<div id="indoor3d" style="width: 800px; height: 500px"></div>
+<script>
+    var params = {
+        mapDiv:"indoor3d",
+        dim:"3d"
+    }
+    var map = IndoorMap(params);
+    map.load('data/testMapData.json', function(){
+        map.showAllFloors().showAreaNames(true).setSelectable(true);
+        var ul = IndoorMap.getUI(map);
+        document.body.appendChild(ul);
+    });
+</script>
 
-方法
-方法名	参数类型	返回值	方法说明
-load (url, callback)	url:string
-callback:Function	无	加载建筑物。url表示访问的url地址，callback为解析建筑物数据成功后的回调
+</body>
+</html>
+```
+The explanation is as follows:
+1) include the required js files
+```html
+<script src="js/three.min.js"></script>
+<script src="js/Detector.js"></script>
+<script src="js/OrbitControls.js"></script>
+<script src="js/Projector.js"></script>
+<script src="js/IndoorMap.js"></script>
+<script src="js/IndoorMap2d.js"></script>
+<script src="js/IndoorMap3d.js"></script>
+<link href="css/indoor3D.css" rel="stylesheet">
+```
+  - [three.min.js](http://threejs.org/): a 3D javascript library
+  - Detector: detects whether the browser support the webgl. if it does not, threejs switches to a normal canvas renderer.
+  - OrbitControls: handles the user interactions to zoom, pan and pivot. (Only used in 3D version)
+  - Projector: user selection detection used by threejs. (Only used in 3D version)
+
+2) set up the parameters of the indoor map and pass it to the creator
+```js
+var params={mapDiv:"indoor3d",dim:"3d"};
+var indoorMap = IndoorMap(params);
+```
+optional parameters:
+@mapDiv: if you have create your own <div> as a map container, u can specify its id here, or it will create a full screen map.
+@dim: "2d" or "3d". "3d" as default value. But the final result depends on your device. If it doesn't support WebGL, it will show a 2d map even if u set "3d".
 
 
+So if there is no params passed to IndoorMap, it will create a fullscreen 3D map by default:
+```js
+var indoorMap = IndoorMap();
+```
+
+3) load the map data, and set up its styles.
+```js
+indoorMap.load('data/testMapData.json', function(){
+        map.setTheme(myTheme).showAllFloors().showAreaNames(true).setSelectable(true);
+        var ul = IndoorMap.getUI(indoorMap);
+        document.body.appendChild(ul);
+    });
+```
+the second parameter of the load() function is a callback function when the data is successfully loaded.
+You can customize the style and interaction of your indoor map in it. You may call the functions separately:
+```js
+map.setTheme(myTheme);
+map.showAllFloors();
+map.showAreaNames(true);
+map.setSelectable(true);
+```
+or in a chain for convenience:
+
+```js
+map.setTheme(myTheme).showAllFloors().showAreaNames(true).setSelectable(true);
+```
+The UI is the buttons for switching floors. Its style is defined in the css file. so you can customize it by yourself.
+
+#User Reference
+There are Three main classes:
+  -IndoorMap
+  -IndoorMap2d
+  -IndoorMap3d
+
+
+## IndoorMap2d
+###methods:
+**.load(fileName, callback)**
+
+loads a file. 
+When it finishes loading, the callback functon is called.
+Since the ui can only be constructed after the data is fully loaded, so the `getUI()` function must be called in the callback.
+
+if the file is already loaded by other modules, you should use the `.parse(jsonData)` method instead
+
+**.parse(jsonData)**
+
+parse the json Data.
+if the jsonData is loaded by other modules, you can just use this function to pass it to the indoor map
+
+**.setDefaultView()**
+
+reset the camera to default view (Default perspective view for a 3d map and default top view for a 2d map)
+
+**.setTopView()**
+
+set the camera to the top view. this function is only valid in the 3d map.
+
+**.zoomIn(zoomScale)**
+
+zoom in. zoom Scale is not necessary. so you can just call .zoomIn()
+
+**.zoomOut(zoomScale)**
+
+zoom out. Same as the zoomIn() function, zoom Scale is not necessary.
+
+**.adjustCamera**
+
+Resets the camera to its default settings. This function is called when switching floors
+
+**.setSelectable(selectable)**
+
+selectable- a boolean parameter to specify whether the rooms are selectable
+
+**.showLabels(showLabels)**
+
+showLabels- a boolean parameter to specify whether to show the labels.
+The labels are the icons and texts in the map.
+
+**.getUI()**
+
+returns a `<ul>` tag with all the floor id. The user can switch the floor by clicking the `<li>`
+You can insert the `<ul>` to anywhere in the html.
+Make sure to call this method only after the map is loaded.
+
+**.setSelectionListener(callback)**
+
+set the call back function when a shop is selected.
+
+the shop id is passed as the parameter of callback. and -1 for nothing is selected.
+
+**.getSelectedId()**
+
+get the selected shop's id
+
+**.selectById(id)**
+
+select the shop by its id
+
+**.showFloor(id)**
+
+`id`-the floor id
+shows the floor by id. Notice this does not handle the labels.
+
+**.showAllFloors()**
+
+shows all the floors together. Notice this does not handle the labels.
+
+###
+## Mall:
+###Properties
+**.floors**
+
+This is an array with all the floors of `[THREE.Object3D]`(http://threejs.org/docs/#Reference/Core/Object3D) type.
+
+###Methods:
+**.getCurFloorId()**
+
+gets the `id` of the current floor.
+Notice: the `id` is a  signed integers. -1 means Floor B1, and 1 means Floor F1. 0 is preserved for showing all the floors.
+
+
+**.getFloor(id)**
+
+`id`-the floor id
+gets the floor of `[THREE.Object3D]`(http://threejs.org/docs/#Reference/Core/Object3D) type by its `id`.
+
+**.getCurFloor()**
+
+gets the current floor of `[THREE.Object3D]`(http://threejs.org/docs/#Reference/Core/Object3D) type.
 
