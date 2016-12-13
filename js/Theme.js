@@ -2,7 +2,9 @@
  * Created by gaimeng on 2015/11/3.
  * Some themes for test
  */
-
+/**
+ * updated by shitao on 16/12/13
+ */
 
 
 var testTheme = {
@@ -29,9 +31,9 @@ var testTheme = {
     selected: "#fffdb0",
 
     //rooms' style
-    room: function (type, category) {
+    room: function(type, category) {
         var roomStyle;
-        if(category == undefined) {
+        if (category == undefined) {
             switch (type) {
 
                 case "100": //hollow. u needn't change this color. because i will make a hole on the model in the final version.
@@ -52,12 +54,12 @@ var testTheme = {
                         opacity: 0.7,
                         transparent: true
                     };
-                default :
+                default:
                     break;
             }
         }
 
-        switch(category) {
+        switch (category) {
             case 101: //food
                 roomStyle = {
                     color: "#D3D3D3",
@@ -120,7 +122,7 @@ var testTheme = {
                     opacity: 0.7,
                     transparent: true
                 };
-            default :
+            default:
                 roomStyle = {
                     color: "#D3D3D3",
                     opacity: 0.7,
@@ -139,7 +141,7 @@ var testTheme = {
         linewidth: 1
     },
 
-    fontStyle:{
+    fontStyle: {
         color: "#231815",
         fontsize: 0,
         fontface: "Helvetica, MicrosoftYaHei "
@@ -147,12 +149,12 @@ var testTheme = {
 
     pubPointImg: {
 
-        "11001": System.imgPath+"/toilet.png",
-        "11002": System.imgPath+"/ATM.png",
-        "21001": System.imgPath+"/stair.png",
-        "22006": System.imgPath+"/entry.png",
-        "21002": System.imgPath+"/escalator.png",
-        "21003": System.imgPath+"/lift.png"
+        "11001": System.imgPath + "/toilet.png",
+        "11002": System.imgPath + "/ATM.png",
+        "21001": System.imgPath + "/stair.png",
+        "22006": System.imgPath + "/entry.png",
+        "21002": System.imgPath + "/escalator.png",
+        "21003": System.imgPath + "/lift.png"
     }
 
 }

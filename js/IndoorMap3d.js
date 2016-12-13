@@ -1,8 +1,10 @@
 /**
  * Created by gaimeng on 15/3/9.
  */
-
-IndoorMap3d = function(mapdiv){
+/**
+ * updated by shitao on 16/12/13
+ */
+IndoorMap3d = function(mapdiv) {
     var _this = this;
     var _theme = null;
     var _mapDiv = mapdiv,
@@ -12,20 +14,23 @@ IndoorMap3d = function(mapdiv){
         _canvasHeightHalf = _canvasHeight / 2;
 
     var _scene, _controls, _projector, _rayCaster;
-    var  _canvasDiv;
+    var _canvasDiv;
     var _selected;
-    var _showNames = true, _showPubPoints = true;
+    var _showNames = true,
+        _showPubPoints = true;
     var _curFloorId = 0;
     var _selectionListener = null;
-    var _sceneOrtho, _cameraOrtho;//for 2d
-    var _spriteMaterials = [], _pubPointSprites=null, _nameSprites = null;
+    var _sceneOrtho, _cameraOrtho; //for 2d
+    var _spriteMaterials = [],
+        _pubPointSprites = null,
+        _nameSprites = null;
 
     this.camera = null;
     this.renderer = null;
     this.mall = null;
     this.is3d = true;
 
-    this.init = function(){
+    this.init = function() {
 
         // perspective scene for normal 3d rendering
         _scene = new THREE.Scene();
@@ -33,7 +38,7 @@ IndoorMap3d = function(mapdiv){
 
         //orthogonal scene for sprites 2d rendering
         _sceneOrtho = new THREE.Scene();
-        _cameraOrtho = new THREE.OrthographicCamera(- _canvasWidthHalf, _canvasWidthHalf, _canvasHeightHalf, -_canvasHeightHalf, 1, 10);
+        _cameraOrtho = new THREE.OrthographicCamera(-_canvasWidthHalf, _canvasWidthHalf, _canvasHeightHalf, -_canvasHeightHalf, 1, 10);
         _cameraOrtho.position.z = 10;
 
         //controls
@@ -62,35 +67,35 @@ IndoorMap3d = function(mapdiv){
         _canvasDiv.style.height = "100%";
     }
 
-    this.setTheme = function(theme){
-        if(_theme == null){
+    this.setTheme = function(theme) {
+        if (_theme == null) {
             _theme = theme
-        } else if(_theme != theme) {
+        } else if (_theme != theme) {
             _theme = theme;
             _this.parse(_this.mall.jsonData); //parse
         }
         return _this;
     }
 
-    this.theme = function(){
+    this.theme = function() {
         return _theme;
     }
 
     //load the map by the json file name
-    this.load = function (fileName, callback) {
+    this.load = function(fileName, callback) {
         var loader = new IndoorMapLoader(true);
         _theme = default3dTheme;
-        loader.load(fileName, function(mall){
+        loader.load(fileName, function(mall) {
             _this.mall = mall;
             _scene.add(_this.mall.root);
             _scene.mall = mall;
-            if(callback) {
+            if (callback) {
                 callback();
             }
             _this.renderer.setClearColor(_theme.background);
-            if(_curFloorId == 0){
+            if (_curFloorId == 0) {
                 _this.showAllFloors();
-            }else{
+            } else {
                 _this.showFloor(_curFloorId);
             }
 
@@ -99,8 +104,8 @@ IndoorMap3d = function(mapdiv){
     }
 
     //parse the json file
-    this.parse = function(json){
-        if(_theme == null) {
+    this.parse = function(json) {
+        if (_theme == null) {
             _theme = default3dTheme;
         }
         _this.mall = ParseModel(json, _this.is3d, _theme);
@@ -113,13 +118,13 @@ IndoorMap3d = function(mapdiv){
     }
 
     //reset the camera to default configuration
-    this.setDefaultView = function () {
+    this.setDefaultView = function() {
 
-        var camAngle = _this.mall.FrontAngle + Math.PI/2;
+        var camAngle = _this.mall.FrontAngle + Math.PI / 2;
         var camDir = [Math.cos(camAngle), Math.sin(camAngle)];
         var camLen = 500;
-        var tiltAngle = 75.0 * Math.PI/180.0;
-        _this.camera.position.set(camDir[1]*camLen, Math.sin(tiltAngle) * camLen, camDir[0]*camLen);//TODO: adjust the position automatically
+        var tiltAngle = 75.0 * Math.PI / 180.0;
+        _this.camera.position.set(camDir[1] * camLen, Math.sin(tiltAngle) * camLen, camDir[0] * camLen); //TODO: adjust the position automatically
         _this.camera.lookAt(_scene.position);
 
         _controls.reset();
@@ -128,7 +133,7 @@ IndoorMap3d = function(mapdiv){
     }
 
     //set top view
-    this.setTopView = function(){
+    this.setTopView = function() {
         _this.camera.position.set(0, 500, 0);
         return _this;
     }
@@ -139,12 +144,12 @@ IndoorMap3d = function(mapdiv){
 
     }
 
-    this.zoomIn = function(zoomScale){
+    this.zoomIn = function(zoomScale) {
         _controls.zoomOut(zoomScale);
         redraw();
     }
 
-    this.zoomOut = function(zoomScale){
+    this.zoomOut = function(zoomScale) {
         _controls.zoomIn(zoomScale);
         redraw();
     }
@@ -152,15 +157,15 @@ IndoorMap3d = function(mapdiv){
     //show floor by id
     this.showFloor = function(floorid) {
         _curFloorId = floorid;
-        if(_scene.mall == null){
+        if (_scene.mall == null) {
             return;
         }
         _scene.mall.showFloor(floorid);
         _this.adjustCamera();
-        if(_showPubPoints) {
+        if (_showPubPoints) {
             createPubPointSprites(floorid);
         }
-        if(_showNames) {
+        if (_showNames) {
             createNameSprites(floorid);
         }
         redraw();
@@ -168,9 +173,9 @@ IndoorMap3d = function(mapdiv){
     }
 
     //show all floors
-    this.showAllFloors = function(){
+    this.showAllFloors = function() {
         _curFloorId = 0; //0 for showing all
-        if(_this.mall == null){
+        if (_this.mall == null) {
             return;
         }
         _this.mall.showAllFloors();
@@ -181,13 +186,13 @@ IndoorMap3d = function(mapdiv){
     }
 
     //set if the objects are selectable
-    this.setSelectable = function (selectable) {
-        if(selectable){
+    this.setSelectable = function(selectable) {
+        if (selectable) {
             _projector = new THREE.Projector();
             _rayCaster = new THREE.Raycaster();
             _mapDiv.addEventListener('mousedown', onSelectObject, false);
             _mapDiv.addEventListener('touchstart', onSelectObject, false);
-        }else{
+        } else {
             _mapDiv.removeEventListener('mousedown', onSelectObject, false);
             _mapDiv.removeEventListener('touchstart', onSelectObject, false);
         }
@@ -195,7 +200,7 @@ IndoorMap3d = function(mapdiv){
     }
 
     //set if the user can pan the camera
-    this.setMovable = function(movable){
+    this.setMovable = function(movable) {
         _controls.enable = movable;
         return _this;
     }
@@ -207,27 +212,27 @@ IndoorMap3d = function(mapdiv){
     }
 
     //show pubPoints(entries, ATM, escalator...)
-    this.showPubPoints = function(show){
-        _showPubPoints = show == undefined ? true: show;
+    this.showPubPoints = function(show) {
+        _showPubPoints = show == undefined ? true : show;
         return _this;
     }
 
     //get the selected object
-    this.getSelectedId = function(){
+    this.getSelectedId = function() {
         return _selected.id;
     }
 
     //the callback function when sth is selected
-    this.setSelectionListener = function(callback){
+    this.setSelectionListener = function(callback) {
         _selectionListener = callback;
         return _this;
     }
 
     //select object by id
-    this.selectById = function(id){
+    this.selectById = function(id) {
         var floor = _this.mall.getCurFloor();
-        for(var i = 0; i < floor.children.length; i++){
-            if(floor.children[i].id && floor.children[i].id == id) {
+        for (var i = 0; i < floor.children.length; i++) {
+            if (floor.children[i].id && floor.children[i].id == id) {
                 if (_selected) {
                     _selected.material.color.setHex(_selected.currentHex);
                 }
@@ -237,10 +242,10 @@ IndoorMap3d = function(mapdiv){
     }
 
     //select object(just hight light it)
-    function select(obj){
+    function select(obj) {
         obj.currentHex = _selected.material.color.getHex();
         obj.material.color = new THREE.Color(_theme.selected);
-        obj.scale = new THREE.Vector3(2,2,2);
+        obj.scale = new THREE.Vector3(2, 2, 2);
     }
 
     function onSelectObject(event) {
@@ -248,39 +253,39 @@ IndoorMap3d = function(mapdiv){
         // find intersections
         event.preventDefault();
         var mouse = new THREE.Vector2();
-        if(event.type == "touchstart"){
-            mouse.x = ( event.touches[0].clientX / _canvasDiv.clientWidth ) * 2 - 1;
-            mouse.y = -( event.touches[0].clientY / _canvasDiv.clientHeight ) * 2 + 1;
-        }else {
-            mouse.x = ( event.clientX / _canvasDiv.clientWidth ) * 2 - 1;
-            mouse.y = -( event.clientY / _canvasDiv.clientHeight ) * 2 + 1;
+        if (event.type == "touchstart") {
+            mouse.x = (event.touches[0].clientX / _canvasDiv.clientWidth) * 2 - 1;
+            mouse.y = -(event.touches[0].clientY / _canvasDiv.clientHeight) * 2 + 1;
+        } else {
+            mouse.x = (event.clientX / _canvasDiv.clientWidth) * 2 - 1;
+            mouse.y = -(event.clientY / _canvasDiv.clientHeight) * 2 + 1;
         }
-        var vector = new THREE.Vector3( mouse.x, mouse.y, 1 );
-        vector.unproject( _this.camera);
+        var vector = new THREE.Vector3(mouse.x, mouse.y, 1);
+        vector.unproject(_this.camera);
 
-        _rayCaster.set( _this.camera.position, vector.sub( _this.camera.position ).normalize() );
+        _rayCaster.set(_this.camera.position, vector.sub(_this.camera.position).normalize());
 
-        var intersects = _rayCaster.intersectObjects( _this.mall.root.children[0].children );
+        var intersects = _rayCaster.intersectObjects(_this.mall.root.children[0].children);
 
-        if ( intersects.length > 0 ) {
+        if (intersects.length > 0) {
 
-            if ( _selected != intersects[ 0 ].object ) {
+            if (_selected != intersects[0].object) {
 
-                if ( _selected ) {
-                    _selected.material.color.setHex( _selected.currentHex );
+                if (_selected) {
+                    _selected.material.color.setHex(_selected.currentHex);
                 }
-                for(var i=0; i<intersects.length; i++) {
-                    _selected = intersects[ i ].object;
-                    if(_selected.type && _selected.type == "solidroom") {
+                for (var i = 0; i < intersects.length; i++) {
+                    _selected = intersects[i].object;
+                    if (_selected.type && _selected.type == "solidroom") {
                         select(_selected);
-                        if(_selectionListener) {
+                        if (_selectionListener) {
                             _selectionListener(_selected.id); //notify the listener
                         }
                         break;
-                    }else{
+                    } else {
                         _selected = null;
                     }
-                    if(_selected == null && _selectionListener != null){
+                    if (_selected == null && _selectionListener != null) {
                         _selectionListener(-1);
                     }
                 }
@@ -288,12 +293,12 @@ IndoorMap3d = function(mapdiv){
 
         } else {
 
-            if ( _selected ) {
-                _selected.material.color.setHex( _selected.currentHex );
+            if (_selected) {
+                _selected.material.color.setHex(_selected.currentHex);
             }
 
             _selected = null;
-            if(_selectionListener) {
+            if (_selectionListener) {
                 _selectionListener(-1); //notify the listener
             }
         }
@@ -301,14 +306,14 @@ IndoorMap3d = function(mapdiv){
 
     }
 
-    function redraw(){
+    function redraw() {
         _controls.viewChanged = true;
     }
 
-    function animate () {
+    function animate() {
         requestAnimationFrame(animate);
         _controls.update();
-        if(_controls.viewChanged) {
+        if (_controls.viewChanged) {
 
             _this.renderer.clear();
             _this.renderer.render(_scene, _this.camera);
@@ -325,12 +330,12 @@ IndoorMap3d = function(mapdiv){
     }
 
     //load Sprites
-    function loadSprites(){
-        if(_this.mall != null && _spriteMaterials.length == 0){
+    function loadSprites() {
+        if (_this.mall != null && _spriteMaterials.length == 0) {
             var images = _theme.pubPointImg;
-            for(var key in images){
+            for (var key in images) {
                 var texture = THREE.ImageUtils.loadTexture(images[key], undefined, redraw);
-                var material = new THREE.SpriteMaterial({map:texture});
+                var material = new THREE.SpriteMaterial({ map: texture });
                 _spriteMaterials[key] = material;
             }
         }
@@ -340,18 +345,18 @@ IndoorMap3d = function(mapdiv){
     //labels includes pubPoints and shop names
     function updateLabels() {
         var mall = _this.mall;
-        if(mall == null || _controls == null || !_controls.viewChanged){
+        if (mall == null || _controls == null || !_controls.viewChanged) {
             return;
         }
         var curFloor = mall.getCurFloor();
-        if(curFloor == null){
+        if (curFloor == null) {
             return;
         }
 
         var projectMatrix = null;
 
-        if(_showNames) {
-            if(_nameSprites != undefined){
+        if (_showNames) {
+            if (_nameSprites != undefined) {
                 projectMatrix = new THREE.Matrix4();
                 projectMatrix.multiplyMatrices(_this.camera.projectionMatrix, _this.camera.matrixWorldInverse);
 
@@ -360,9 +365,9 @@ IndoorMap3d = function(mapdiv){
 
         }
 
-        if(_showPubPoints){
-            if(_pubPointSprites != undefined){
-                if(!projectMatrix){
+        if (_showPubPoints) {
+            if (_pubPointSprites != undefined) {
+                if (!projectMatrix) {
                     projectMatrix = new THREE.Matrix4();
                     projectMatrix.multiplyMatrices(_this.camera.projectionMatrix, _this.camera.matrixWorldInverse);
                 }
@@ -373,8 +378,8 @@ IndoorMap3d = function(mapdiv){
     };
 
     //update sprites
-    function updateSprites(spritelist, projectMatrix){
-        for(var i = 0 ; i < spritelist.children.length; i++){
+    function updateSprites(spritelist, projectMatrix) {
+        for (var i = 0; i < spritelist.children.length; i++) {
             var sprite = spritelist.children[i];
             var vec = new THREE.Vector3(sprite.oriX * 0.1, 0, -sprite.oriY * 0.1);
             vec.applyProjection(projectMatrix);
@@ -386,9 +391,9 @@ IndoorMap3d = function(mapdiv){
             //check collision with the former sprites
             var visible = true;
             var visibleMargin = 5;
-            for(var j = 0; j < i; j++){
+            for (var j = 0; j < i; j++) {
                 var img = sprite.material.map.image;
-                if(!img){ //if img is undefined (the img has not loaded)
+                if (!img) { //if img is undefined (the img has not loaded)
                     visible = false;
                     break;
                 }
@@ -396,16 +401,16 @@ IndoorMap3d = function(mapdiv){
                 var imgWidthHalf1 = sprite.width / 2;
                 var imgHeightHalf1 = sprite.height / 2;
                 var rect1 = new Rect(sprite.position.x - imgWidthHalf1, sprite.position.y - imgHeightHalf1,
-                        sprite.position.x + imgHeightHalf1, sprite.position.y + imgHeightHalf1 );
+                    sprite.position.x + imgHeightHalf1, sprite.position.y + imgHeightHalf1);
 
                 var sprite2 = spritelist.children[j];
                 var sprite2Pos = sprite2.position;
                 var imgWidthHalf2 = sprite2.width / 2;
                 var imgHeightHalf2 = sprite2.height / 2;
                 var rect2 = new Rect(sprite2Pos.x - imgWidthHalf2, sprite2Pos.y - imgHeightHalf2,
-                        sprite2Pos.x + imgHeightHalf2, sprite2Pos.y + imgHeightHalf2 );
+                    sprite2Pos.x + imgHeightHalf2, sprite2Pos.y + imgHeightHalf2);
 
-                if(sprite2.visible && rect1.isCollide(rect2)){
+                if (sprite2.visible && rect1.isCollide(rect2)) {
                     visible = false;
                     break;
                 }
@@ -416,7 +421,7 @@ IndoorMap3d = function(mapdiv){
                 rect2.tl[1] -= visibleMargin;
 
 
-                if(sprite.visible == false && rect1.isCollide(rect2)){
+                if (sprite.visible == false && rect1.isCollide(rect2)) {
                     visible = false;
                     break;
                 }
@@ -426,14 +431,14 @@ IndoorMap3d = function(mapdiv){
     }
 
     //creat the funcArea Name sprites of a floor
-    function createNameSprites(floorId){
-        if(!_nameSprites){
+    function createNameSprites(floorId) {
+        if (!_nameSprites) {
             _nameSprites = new THREE.Object3D();
-        }else{
+        } else {
             clearNameSprites();
         }
         var funcAreaJson = _this.mall.getFloorJson(_this.mall.getCurFloorId()).FuncAreas;
-        for(var i = 0 ; i < funcAreaJson.length; i++){
+        for (var i = 0; i < funcAreaJson.length; i++) {
             var sprite = makeTextSprite(funcAreaJson[i].Name_en, _theme.fontStyle);
             sprite.oriX = funcAreaJson[i].Center[0];
             sprite.oriY = funcAreaJson[i].Center[1];
@@ -443,23 +448,23 @@ IndoorMap3d = function(mapdiv){
     }
 
     //create the pubpoint sprites in a floor by the floor id
-    function createPubPointSprites(floorId){
-        if(!_spriteMaterials.isLoaded){
+    function createPubPointSprites(floorId) {
+        if (!_spriteMaterials.isLoaded) {
             loadSprites();
         }
 
-        if(!_pubPointSprites) {
+        if (!_pubPointSprites) {
 
             _pubPointSprites = new THREE.Object3D();
-        }else{
+        } else {
             clearPubPointSprites();
         }
 
         var pubPointsJson = _this.mall.getFloorJson(_this.mall.getCurFloorId()).PubPoint;
         var imgWidth, imgHeight;
-        for(var i = 0; i < pubPointsJson.length; i++){
+        for (var i = 0; i < pubPointsJson.length; i++) {
             var spriteMat = _spriteMaterials[pubPointsJson[i].Type];
-            if(spriteMat !== undefined) {
+            if (spriteMat !== undefined) {
                 imgWidth = 30, imgHeight = 30;
                 var sprite = new THREE.Sprite(spriteMat);
                 sprite.scale.set(imgWidth, imgHeight, 1);
@@ -473,24 +478,24 @@ IndoorMap3d = function(mapdiv){
         _sceneOrtho.add(_pubPointSprites);
     }
 
-    function clearNameSprites(){
-        if(_nameSprites == null){
+    function clearNameSprites() {
+        if (_nameSprites == null) {
             return;
         }
         _nameSprites.remove(_nameSprites.children);
         _nameSprites.children.length = 0;
     }
-    function clearPubPointSprites(){
-        if(_pubPointSprites == null){
+
+    function clearPubPointSprites() {
+        if (_pubPointSprites == null) {
             return;
         }
         _pubPointSprites.remove(_pubPointSprites.children);
         _pubPointSprites.children.length = 0;
     }
 
-    function makeTextSprite( message, parameters )
-    {
-        if ( parameters === undefined ) parameters = {};
+    function makeTextSprite(message, parameters) {
+        if (parameters === undefined) parameters = {};
 
         var fontface = parameters.hasOwnProperty("fontface") ?
             parameters["fontface"] : "Arial";
@@ -502,18 +507,18 @@ IndoorMap3d = function(mapdiv){
             parameters["borderThickness"] : 2;
 
         var borderColor = parameters.hasOwnProperty("borderColor") ?
-            parameters["borderColor"] : { r:0, g:0, b:0, a:1.0 };
+            parameters["borderColor"] : { r: 0, g: 0, b: 0, a: 1.0 };
 
         var backgroundColor = parameters.hasOwnProperty("backgroundColor") ?
-            parameters["backgroundColor"] : { r:255, g:255, b:255, a:1.0 };
+            parameters["backgroundColor"] : { r: 255, g: 255, b: 255, a: 1.0 };
 
-        var fontColor = parameters.hasOwnProperty("color")?
+        var fontColor = parameters.hasOwnProperty("color") ?
             parameters["color"] : "#000000";
 
         //var spriteAlignment = parameters.hasOwnProperty("alignment") ?
         //	parameters["alignment"] : THREE.SpriteAlignment.topLeft;
 
-        var spriteAlignment = new THREE.Vector2( 0, 0 );
+        var spriteAlignment = new THREE.Vector2(0, 0);
 
 
         var canvas = document.createElement('canvas');
@@ -521,43 +526,42 @@ IndoorMap3d = function(mapdiv){
         context.font = "Bold " + fontsize + "px " + fontface;
 
         // get size data (height depends only on font size)
-        var metrics = context.measureText( message );
-//
-//        // background color
-//        context.fillStyle   = "rgba(" + backgroundColor.r + "," + backgroundColor.g + ","
-//            + backgroundColor.b + "," + backgroundColor.a + ")";
-//        // border color
-        context.strokeStyle = "rgba(" + borderColor.r + "," + borderColor.g + ","
-            + borderColor.b + "," + borderColor.a + ")";
-//
-//        context.lineWidth = borderThickness;
-//        context.strokeRect(borderThickness/2, borderThickness/2, metrics.width + borderThickness, fontsize * 1.4 + borderThickness);
+        var metrics = context.measureText(message);
+        //
+        //        // background color
+        //        context.fillStyle   = "rgba(" + backgroundColor.r + "," + backgroundColor.g + ","
+        //            + backgroundColor.b + "," + backgroundColor.a + ")";
+        //        // border color
+        context.strokeStyle = "rgba(" + borderColor.r + "," + borderColor.g + "," +
+            borderColor.b + "," + borderColor.a + ")";
+        //
+        //        context.lineWidth = borderThickness;
+        //        context.strokeRect(borderThickness/2, borderThickness/2, metrics.width + borderThickness, fontsize * 1.4 + borderThickness);
 
         // text color
         context.fillStyle = fontColor;
 
-        context.fillText( message, borderThickness, fontsize + borderThickness);
+        context.fillText(message, borderThickness, fontsize + borderThickness);
 
         // canvas contents will be used for a texture
         var texture = new THREE.Texture(canvas)
         texture.needsUpdate = true;
 
 
-        var spriteMaterial = new THREE.SpriteMaterial(
-            { map: texture, useScreenCoordinates: false } );
-        var sprite = new THREE.Sprite( spriteMaterial );
-        sprite.scale.set(100,50,1.0);
+        var spriteMaterial = new THREE.SpriteMaterial({ map: texture, useScreenCoordinates: false });
+        var sprite = new THREE.Sprite(spriteMaterial);
+        sprite.scale.set(100, 50, 1.0);
         sprite.width = metrics.width;
         sprite.height = fontsize * 1.4;
         return sprite;
     }
 
     //resize the map
-    this.resize = function (width, height){
+    this.resize = function(width, height) {
         _this.camera.aspect = width / height;
         _this.camera.updateProjectionMatrix();
 
-        _this.renderer.setSize( width, height );
+        _this.renderer.setSize(width, height);
         _controls.viewChanged = true;
     }
 
