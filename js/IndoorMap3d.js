@@ -19,7 +19,6 @@ IndoorMap3d = function(mapdiv){
     var _selectionListener = null;
     var _sceneOrtho, _cameraOrtho;//for 2d
     var _spriteMaterials = [], _pubPointSprites=null, _nameSprites = null;
-    var viewAngle = {h:Math.PI/2, v: 75.0 * Math.PI/180.0};
 
     this.camera = null;
     this.renderer = null;
@@ -77,13 +76,9 @@ IndoorMap3d = function(mapdiv){
         return _theme;
     }
 
-    this.getSize = function(){
-        return {width: _canvasWidth, height: _canvasHeight};
-    }
-
     //load the map by the json file name
     this.load = function (fileName, callback) {
-        var loader = new IndoorMapLoader(true, {sceneSize: {width: _canvasWidth, height: _canvasHeight}});
+        var loader = new IndoorMapLoader(true);
         _theme = default3dTheme;
         loader.load(fileName, function(mall){
             _this.mall = mall;
@@ -108,8 +103,7 @@ IndoorMap3d = function(mapdiv){
         if(_theme == null) {
             _theme = default3dTheme;
         }
-
-        _this.mall = ParseModel(json, _this.is3d, _theme, {width: _canvasWidth, height: _canvasHeight});
+        _this.mall = ParseModel(json, _this.is3d, _theme);
         _scene.mall = _this.mall;
         _this.showFloor(_this.mall.getDefaultFloorId());
         _this.renderer.setClearColor(_theme.background);
@@ -120,18 +114,14 @@ IndoorMap3d = function(mapdiv){
 
     //reset the camera to default configuration
     this.setDefaultView = function () {
+
         var camAngle = _this.mall.FrontAngle + Math.PI/2;
-        console.log( _this.mall.FrontAngle);
         var camDir = [Math.cos(camAngle), Math.sin(camAngle)];
         var camLen = 500;
-        var tiltAngle = 35.0 * Math.PI/180.0;
-        var camHLen = camLen * Math.cos(tiltAngle);
-        _this.camera.position.set(camDir[1]*camHLen, Math.sin(tiltAngle) * camLen, camDir[0]*camHLen);//TODO: adjust the position automatically
+        var tiltAngle = 75.0 * Math.PI/180.0;
+        _this.camera.position.set(camDir[1]*camLen, Math.sin(tiltAngle) * camLen, camDir[0]*camLen);//TODO: adjust the position automatically
         _this.camera.lookAt(_scene.position);
 
-        viewAngle.h = camAngle;
-        viewAngle.v = tiltAngle;
-       // console.log(h+";"+v);
         _controls.reset();
         _controls.viewChanged = true;
         return _this;
@@ -139,83 +129,18 @@ IndoorMap3d = function(mapdiv){
 
     //set top view
     this.setTopView = function(){
-        viewAngle.h = 0;
-        viewAngle.v = Math.PI / 2;
         _this.camera.position.set(0, 500, 0);
         return _this;
     }
 
-    this.changeViewAngle = function (hAngle, vAngle) {
-        var camHAngle = hAngle * Math.PI/180;
-        var tiltAngle = vAngle * Math.PI/180.0;
-        var pos1=this.AngleToPosition(viewAngle);
-        // var vangle=this.PositionToAngle(_this.camera.position);
-        viewAngle.h += camHAngle;
-        viewAngle.v += tiltAngle;
-        viewAngle.v = Math.min(Math.max(viewAngle.v, 0), Math.PI / 2);
-        var Hlen;
-        if (_this.camera.Hlen) {
-            Hlen=_this.camera.Hlen;
-        }else{
-            Hlen=500;
-        }
-                var pos=this.AngleToPosition(viewAngle,Hlen);
-
-        /*var camHLen = 500 * Math.cos(viewAngle.v);
-
-        //var camDir = [Math.cos(camHAngle), Math.sin(camHAngle)];
-        var camDir = [Math.cos(viewAngle.h), Math.sin(viewAngle.h)];
-        _this.camera.position.set(camDir[1]*camHLen, Math.sin(viewAngle.v) * camLen, camDir[0]*camHLen);//TODO: adjust the position automatically
-       */ 
-       _this.camera.position.set(pos.x, pos.y, pos.z);
-        _this.camera.lookAt(_scene.position);
-
-        _controls.reset();
-        _controls.viewChanged = true;
-        return _this;
-    }
-
-       this.AngleToPosition=function (viewAngle,len) {
-        var position={};
-        position.x=Math.sin(viewAngle.h)*len*Math.cos(viewAngle.v);
-        position.y=Math.sin(viewAngle.v)*len;
-        position.z=Math.cos(viewAngle.h)*len*Math.cos(viewAngle.v);
-        return position;
-    }
-
-
-       this.CalculateLen=function (Position) {
-        var viewAngle={};
-        viewAngle.h=Math.atan(Position.x/Position.z);
-
-
-        viewAngle.v=Math.acos(Position.x/(Math.sin(viewAngle.h)*500));
-        return viewAngle;
-    }
     //TODO:adjust camera to fit the building
     this.adjustCamera = function() {
-        //_this.setDefaultView();
-        _this.changeViewAngle(0, 0);
+        _this.setDefaultView();
+
     }
-	
-	this.adjustScale = function(){
-		if(_scene.mall.floors.length > 1){
-			var maxHeightPos = _scene.mall.floors[_scene.mall.floors.length - 1].position;
-			var vector = maxHeightPos.clone().project(_this.camera);
-			
-			if(vector.y < 0){
-				scale = (Math.abs(vector.y) + _canvasHeight) / _canvasHeight;
-					
-				this.zoomIn(Math.pow(2, scale));
-			}
-			
-		}
-	},
 
     this.zoomIn = function(zoomScale){
         _controls.zoomOut(zoomScale);
-       // console.log(zoomScale);
-      
         redraw();
     }
 
@@ -243,43 +168,27 @@ IndoorMap3d = function(mapdiv){
     }
 
     //show all floors
-    this.showAllFloors = function(scale){
+    this.showAllFloors = function(){
         _curFloorId = 0; //0 for showing all
         if(_this.mall == null){
             return;
         }
-        _this.mall.showAllFloors(scale);
+        _this.mall.showAllFloors();
         _this.adjustCamera();
-		_this.adjustScale();
         clearPubPointSprites();
         clearNameSprites();
         return _this;
     }
-	
-	this.showFloorWalls = function(){
-		_curFloorId = 0; //0 for showing all
-        if(_this.mall == null){
-            return;
-        }
-        _this.mall.showFloorWalls();
-        _this.adjustCamera();
-		_this.adjustScale();
-        clearPubPointSprites();
-        clearNameSprites();
-        return _this;
-	}
 
     //set if the objects are selectable
     this.setSelectable = function (selectable) {
         if(selectable){
             _projector = new THREE.Projector();
             _rayCaster = new THREE.Raycaster();
-            //_mapDiv.addEventListener('mousedown', onSelectObject, false);
-			_mapDiv.addEventListener('click', onSelectObject, false);
+            _mapDiv.addEventListener('mousedown', onSelectObject, false);
             _mapDiv.addEventListener('touchstart', onSelectObject, false);
         }else{
-            //_mapDiv.removeEventListener('mousedown', onSelectObject, false);
-			_mapDiv.removeEventListener('click', onSelectObject, false);
+            _mapDiv.removeEventListener('mousedown', onSelectObject, false);
             _mapDiv.removeEventListener('touchstart', onSelectObject, false);
         }
         return _this;
@@ -315,29 +224,16 @@ IndoorMap3d = function(mapdiv){
     }
 
     //select object by id
-    this.selectById = function(cellId){
-		var curFloorId = _this.mall.getCurFloorId();
-		
-		//if(floorId !== curFloorId){
-		//	_this.showFloor(floorId);
-		//}
-		
-		var floorObj = _this.mall.getCurFloor();
-		
-		if(floorObj.cells){
-			var cell = floorObj.cells[cellId];
-			
-			if(cell){
-				//for(var i = 0; i < cell.length; i++){
-					if (_selected) {
-						_selected.material.color.setHex(_selected.currentHex);
-                    }
-                    
-					var selectedObj = {object: cell[0], id: cellId, dataInfo: cell[0].dataInfo, type: "solidroom"};
-					doSelect([selectedObj]);
-			    //}
-			}
-		}
+    this.selectById = function(id){
+        var floor = _this.mall.getCurFloor();
+        for(var i = 0; i < floor.children.length; i++){
+            if(floor.children[i].id && floor.children[i].id == id) {
+                if (_selected) {
+                    _selected.material.color.setHex(_selected.currentHex);
+                }
+                select(floor.children[i]);
+            }
+        }
     }
 
     //select object(just hight light it)
@@ -364,10 +260,9 @@ IndoorMap3d = function(mapdiv){
 
         _rayCaster.set( _this.camera.position, vector.sub( _this.camera.position ).normalize() );
 
-        //var intersects = _rayCaster.intersectObjects( _this.mall.root.children[0].children );
-        var intersects = _rayCaster.intersectObjects( _this.mall.root.children, true);
+        var intersects = _rayCaster.intersectObjects( _this.mall.root.children[0].children );
 
-        /*if ( intersects.length > 0 ) {
+        if ( intersects.length > 0 ) {
 
             if ( _selected != intersects[ 0 ].object ) {
 
@@ -376,17 +271,17 @@ IndoorMap3d = function(mapdiv){
                 }
                 for(var i=0; i<intersects.length; i++) {
                     _selected = intersects[ i ].object;
-                    if(_selected.type && (_selected.type == "solidroom" || _selected.type == "floorwall")) {
+                    if(_selected.type && _selected.type == "solidroom") {
                         select(_selected);
                         if(_selectionListener) {
-                            _selectionListener(_selected.id, _selected.dataInfo, event); //notify the listener
+                            _selectionListener(_selected.id); //notify the listener
                         }
                         break;
                     }else{
                         _selected = null;
                     }
                     if(_selected == null && _selectionListener != null){
-                        _selectionListener(-1, null, event);
+                        _selectionListener(-1);
                     }
                 }
             }
@@ -399,74 +294,12 @@ IndoorMap3d = function(mapdiv){
 
             _selected = null;
             if(_selectionListener) {
-                _selectionListener(-1, null, event); //notify the listener
-            }
-        }
-        redraw();*/
-		/*var selectedObj = null;//(intersects.length > 0) ? intersects[ 0 ].object : null;
-		
-		if(intersects.length > 0){
-			for(var i=0; i<intersects.length; i++) {
-                    var selectedObj = intersects[ i ].object;
-                    if(_selected.type && (_selected.type == "solidroom" || _selected.type == "floorwall")) {
-                        select(_selected);
-                        if(_selectionListener) {
-                            _selectionListener(_selected.id, _selected.dataInfo, event); //notify the listener
-                        }
-                        break;
-                    }else{
-                        _selected = null;
-                    }
-                    if(_selected == null && _selectionListener != null){
-                        _selectionListener(-1, null, event);
-                    }
-                }
-		}*/
-		
-		doSelect(intersects, event);
-
-    }
-	
-	function doSelect(intersects, event){
-		if ( intersects.length > 0 ) {
-		//if ( object ) {
-
-            if ( _selected != intersects[ 0 ].object ) {
-			//if ( _selected != object ) {
-
-                if ( _selected ) {
-                    _selected.material.color.setHex( _selected.currentHex );
-                }
-                for(var i=0; i<intersects.length; i++) {
-                    _selected = intersects[ i ].object;
-                    if(_selected.type && (_selected.type == "solidroom" || _selected.type == "floorwall")) {
-                        select(_selected);
-                        if(_selectionListener) {
-                            _selectionListener(_selected.id, _selected.dataInfo, event); //notify the listener
-                        }
-                        break;
-                    }else{
-                        _selected = null;
-                    }
-                    if(_selected == null && _selectionListener != null){
-                        _selectionListener(-1, null, event);
-                    }
-                }
-            }
-
-        } else {
-
-            if ( _selected ) {
-                _selected.material.color.setHex( _selected.currentHex );
-            }
-
-            _selected = null;
-            if(_selectionListener) {
-                _selectionListener(-1, null, event); //notify the listener
+                _selectionListener(-1); //notify the listener
             }
         }
         redraw();
-	}
+
+    }
 
     function redraw(){
         _controls.viewChanged = true;
@@ -686,7 +519,6 @@ IndoorMap3d = function(mapdiv){
         var canvas = document.createElement('canvas');
         var context = canvas.getContext('2d');
         context.font = "Bold " + fontsize + "px " + fontface;
-       //context.font = " " + fontsize + "px " + fontface;
 
         // get size data (height depends only on font size)
         var metrics = context.measureText( message );

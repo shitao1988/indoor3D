@@ -155,8 +155,6 @@ THREE.OrbitControls = function ( object, domElement ) {
         }
 
         scale /= zoomScale;
-        this.object.Hlen=Math.sqrt(Math.pow(this.object.position.x,2)+2*Math.pow(this.object.position.y,2));
-          console.log(zoomScale);
 
     };
 
@@ -169,8 +167,6 @@ THREE.OrbitControls = function ( object, domElement ) {
         }
 
         scale *= zoomScale;
-         this.object.Hlen=Math.sqrt(Math.pow(this.object.position.x,2)+2*Math.pow(this.object.position.y,2));
-         console.log(zoomScale);
 
     };
 
@@ -211,15 +207,9 @@ THREE.OrbitControls = function ( object, domElement ) {
 
         // restrict phi to be betwee EPS and PI-EPS
         phi = Math.max( EPS, Math.min( Math.PI - EPS, phi ) );
-        var radius;
-        if (offset.length()>1800&&scale>1) {
-            radius=offset.length();
-        }else{
-             radius = offset.length() * scale;
-            
-        }
-        
-     //   console.log(offset.length());
+
+        var radius = offset.length() * scale;
+
         // restrict radius to be between desired limits
         radius = Math.max( this.minDistance, Math.min( this.maxDistance, radius ) );
 
