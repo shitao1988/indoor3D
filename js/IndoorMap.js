@@ -1119,15 +1119,45 @@ function ParseModel(json, is3d, theme, sceneSize) {
         };
     }
 
+    function Point(x, y, z, round) {
+        this.x = (round ? Math.round(x) : x);
+        this.y = (round ? Math.round(y) : y);
+        this.z = z ? (round ? Math.round(z) : z) : 0;
+    }
+
     function heightToScene(sceneRealRatio, height) {
         if (sceneRealRatio) {
-            var crs = Z.CRS.EPSG4326,
-                latLngOffset = crs.unprojectLatLngOffset(new Z.Point(0, height)),
+            var latLngOffset = planeOffsetToLatLng(new Point(0, height)),
                 sceneLatLngRatio = sceneRealRatio.height;
             return Math.abs(latLngOffset.lat * sceneLatLngRatio);
         } else {
             return height;
         }
+    }
+
+    function LatLng(lat, lng, alt) { // (Number, Number, Number)
+        lat = parseFloat(lat);
+        lng = parseFloat(lng);
+
+        if (isNaN(lat) || isNaN(lng)) {
+            throw new Error('Invalid LatLng object: (' + lat + ', ' + lng + ')');
+        }
+
+        this.lat = lat;
+        this.lng = lng;
+
+        if (alt !== undefined) {
+            this.alt = parseFloat(alt);
+        }
+    };
+
+    function planeOffsetToLatLng(planeOffset) {
+        var Circumference = Math.PI * 6378137
+        var latLngOffset = new LatLng(0, 0, 0);
+        latLngOffset.lng = 180 * planeOffset.x / Circumference;
+        latLngOffset.lat = 180 * planeOffset.y / Circumference;
+
+        return latLngOffset;
     }
 
     function buildShapes(points) {

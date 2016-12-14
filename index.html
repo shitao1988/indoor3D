@@ -17,6 +17,10 @@
     <script src="js/IndoorMap2d.js"></script>
     <script src="js/IndoorMap3d.js"></script>
     <script src="js/Theme.js"></script>
+
+    <!--    <script src="js/leaflet-src.js"></script>
+    <script src="js/leaflet-omnivore.js "></script>-->
+
     <link href="css/indoor3D.css" rel="stylesheet">
 
     <div id="indoor3d" style="width: 800px; height: 500px; top:0px; left: 0px; position: absolute"></div>
@@ -31,69 +35,37 @@
         });
         loader.load('data/nanjin.json', function(mall) {
             testjson = mall.jsonData;
-            /*        var bounds = omnivore.wkt.parse(testjson.data.building.shape).getBounds();
-                    var points=bounds.toBBoxString().split(",");
-                    var y=parseFloat(points[1]) - parseFloat(points[3]);
-                    var x=parseFloat(points[0]) - parseFloat(points[2]);
-                    var angle=(Math.atan2(x, y) * 180 / Math.PI)-(-123.379);
-            */
+            /*     var bounds = omnivore.wkt.parse(testjson.data.building.shape).getBounds();
+                 var points = bounds.toBBoxString().split(",");
+                 var y = parseFloat(points[1]) - parseFloat(points[3]);
+                 var x = parseFloat(points[0]) - parseFloat(points[2]);
+                 var angle = (Math.atan2(x, y) * 180 / Math.PI) - (-123.379);*/
+
             indoorMap.parse(testjson);
             indoorMap.showFloorWalls();
             indoorMap.setDefaultView();
 
-            // indoorMap.changeViewAngle(angle*20, 0);
+            // indoorMap.changeViewAngle(angle * 20, 0);
             indoorMap.setSelectable(false);
             indoorMap.showPubPoints(false);
             indoorMap.setSelectable(true);
-            var vAngle = 5,
-                hAngle = 5;
-            var step = 10;
-            var ul = IndoorMap.getUI(indoorMap, floormap, floorgroup);
-            $("#zoomin").click(function() {
-                indoorMap.zoomIn(0.8);
-            });
-            $("#zoomout").click(function() {
-                indoorMap.zoomOut(0.8);
-            });
-            $("#btntop").click(function() {
-
-                indoorMap.changeViewAngle(0, step);
-            });
-            $("#btndefault").click(function() {
 
 
-                indoorMap.changeViewAngle(0, -step);
-            });
-            $("#btnleft").click(function() {
-
-                indoorMap.changeViewAngle(-step, 0);
-
-            });
-            $("#btnright").click(function() {
-
-
-                indoorMap.changeViewAngle(step, 0);
-            });
-            $("#allfloor").click(function() {
-
-
-                indoorMap.showAllFloors();
-            });
-            $("#allwall").click(function() {
-
-
-                indoorMap.showFloorWalls();
-            });
 
         });
     </script>
     <!-- buttons just for test-->
     <div class="testButton">
         <ul>
-            <li onclick="map.zoomIn(1.2)">+</li>
-            <li onclick="map.zoomOut(0.8)">-</li>
-            <!--<li onclick="map.setTopView()">Top View</li>-->
-            <li onclick="map.setDefaultView()">Default View</li>
+            <li onclick="indoorMap.zoomIn(0.8)">+</li>
+            <li onclick="indoorMap.zoomOut(0.8)">-</li>
+            <li onclick="indoorMap.changeViewAngle(0, 10)">top</li>
+            <li onclick="indoorMap.changeViewAngle(0, -10)">botton</li>
+            <li onclick="indoorMap.changeViewAngle(-10, 0)">left</li>
+            <li onclick="indoorMap.changeViewAngle(10, 0)">right</li>
+            <li onclick="indoorMap.setDefaultView()">Default View</li>
+            <li onclick="indoorMap.showAllFloors()">showAllFloors</li>
+            <li onclick="indoorMap.showFloorWalls()">showFloorWalls</li>
 
         </ul>
     </div>
